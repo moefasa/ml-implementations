@@ -222,7 +222,6 @@ class SquaredHingeLoss(LossFunction):
         super().__init__()
 
     def set_space(self, X, y, reg_coef):
-        self.reset(space=True)
         # Cache constants
         self.yx = y[:, np.newaxis] * X
         self.reg_coef = reg_coef
@@ -246,18 +245,3 @@ class SquaredHingeLoss(LossFunction):
         dhinge = (yx.T * np.maximum(0, 1-yx@beta)).sum(axis=1)
         grad = (-2.0/n)*dhinge + 2*reg_coef*beta
         return grad
-
-    def reset(self, space=False):
-        """ Resets current point.
-
-            Args:
-            space (boolean): if True, will also reset solution space (X, y).
-
-            Return:
-            self
-        """
-        self.beta_ = None
-        if space:
-            self.yx = None
-            self.n, self.d = None, None
-        return self
