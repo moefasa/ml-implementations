@@ -75,7 +75,7 @@ def fastgradalgo(loss_function, t_init=1, eps=1e-3, max_iter=100):
     log.info("Starting fast gradient descent. Initial gradient norm: {}".format(grad_norm))
     while grad_norm > eps and i < max_iter:
         grad = loss_function.update_pos(theta_vals[i]).get_current_grad()
-        eta = backtracking(beta_vals[i], loss_function, eta)
+        eta = backtracking(loss_function, eta)
 
         beta_vals.append(theta_vals[i] - eta*grad)
         theta_vals.append(beta_vals[i+1] + (i/(i+3))*(beta_vals[i+1]-beta_vals[i]))
@@ -211,7 +211,7 @@ class LossFunction():
             n is the number of rows in X
             and d is the number of dimensions.
         """
-        return self.n_, self.d_
+        return self.n, self.d
 
 class SquaredHingeLoss(LossFunction):
     """ Loss function for squared-hinge loss. Inherits from
