@@ -13,7 +13,12 @@ from numpy.linalg import norm
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.model_selection import GridSearchCV
 
+import loss_functions as lfuncs
+
 log = logging.getLogger(__name__)
+
+# Set constants
+available_functions = lfuncs.get_available_functions()
 
 class GradientOptimizer():
     """ Interface class to be used by base estimators.
@@ -33,8 +38,8 @@ class GradientOptimizer():
         self.betas_ = []
         self.beta_ = []
 
-        if loss_function == 'squared-hinge':
-            self.loss_function = SquaredHingeLoss()
+        if loss_function in available_functions.keys():
+            self.loss_function = available_functions[loss_function]()
         else:
             raise ValueError("Loss function '{}' \
                 is not supported.".format(loss_function))
@@ -121,127 +126,3 @@ def backtracking(loss_function, t=1, alpha=0.5, beta=0.5, max_iter=50):
             t *= beta
             i += 1
     return t
-
-class LossFunction():
-    """ Base class for any loss function. An instance (1) maintains state of
-        current point, objective, and gradient, and (2) can query objective and
-        gradient given a candidate point.
-
-        Required fields for subclasses:
-        * self.n: The number of rows in X.
-        * self.d: The number of columns in X.
-
-        Required methods for subclasses.
-        * set_space: is used to pass in X and y, along with any additional
-          parameters that affect the space (regularization coeficient).
-          Constants should be cached , used for queries of gradient and
-          objective at any point.
-        * obj: returns the objective at some point (beta).
-        * computegrad: returns the gradient at some point (beta).
-
-        Example:
-        loss = MyLossFunction()
-        loss.set_space(X, y)
-        loss.update_pos(beta).get_current_obj() # Updates location and returns objective
-        loss.get_current_grad() # returns gradient for beta
-
-        loss.obj(beta2) # returns objective at location beta2, but does not update
-        loss.computeobj(beta2) # returns gradient at location beta2, but does not update
-
-        NOTE: Any attribute with trailing '_' means it is
-              an attribute of the current point/position/beta.
-
-
-    """
-    def __init__(self):
-        self.beta_ = None
-
-    @abstractmethod
-    def set_space(self, X, y, *args):
-        """ Function for setting X and y and cacheing any
-            values.
-        """
-        yield
-
-    @abstractmethod
-    def obj(self, beta, *args):
-        """ Method for computing objective
-            for some point in space.
-        """
-        yield
-
-    @abstractmethod
-    def computegrad(self, beta, *args):
-        """ Method for computing gradient for some
-            point in space.
-        """
-        yield
-
-    def update_pos(self, beta):
-        """ Updates position of 'current' point.
-            Note that in subclasses, any attribute with
-            trailing '_' is a property of the current point.
-            That is, it has been updated using update_pos.
-
-            Args:
-            beta (numpy array): vector of updated location.
-        """
-        self.beta_ = beta
-        return self
-
-    @property
-    def obj_(self):
-        return self.obj(self.beta_)
-
-    @property
-    def grad_(self):
-        return self.computegrad(self.beta_)
-
-    def get_current_obj(self):
-        return self.obj_
-
-    def get_current_grad(self):
-        return self.grad_
-
-    def get_current_point(self):
-        return self.beta_
-
-    def get_shape(self):
-        """ Method returns tuple (n, d) where
-            n is the number of rows in X
-            and d is the number of dimensions.
-        """
-        return self.n, self.d
-
-class SquaredHingeLoss(LossFunction):
-    """ Loss function for squared-hinge loss. Inherits from
-        LossFunction() class. See super class docstrings for
-        additional details.
-    """
-    def __init__(self):
-        super().__init__()
-
-    def set_space(self, X, y, reg_coef):
-        # Cache constants
-        self.yx = y[:, np.newaxis] * X
-        self.reg_coef = reg_coef
-        self.n, self.d = X.shape
-
-
-    def obj(self, beta):
-        reg_coef = self.reg_coef
-        yx = self.yx
-        n, d = self.n, self.d
-
-        hinge = np.square(np.maximum(0, 1-yx@beta)).sum()
-        obj = (1.0/n)*hinge + reg_coef * norm(beta)**2
-        return obj
-
-    def computegrad(self, beta):
-        reg_coef = self.reg_coef
-        yx = self.yx
-        n, d = self.n, self.d
-
-        dhinge = (yx.T * np.maximum(0, 1-yx@beta)).sum(axis=1)
-        grad = (-2.0/n)*dhinge + 2*reg_coef*beta
-        return grad
