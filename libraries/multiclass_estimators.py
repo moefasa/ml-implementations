@@ -76,26 +76,21 @@ class MyOneVsRestClassifier(MyMultiClassifier):
     """ Class for one-vs-rest multi-classification.
 
         Args:
-        base_model: instance of scikit-learn compatible model.
+        base_model (model object of list of model objects): instance of scikit-learn compatible model.
+            (has .fit, .predict, and .predict_proba methods). Can also be list of models, but must be
+            the same length as the number of labels in the training set.
         n_jobs: number of parallel jobs. Uses same logic as sklearn's
             n_jobs (-1 uses all cores, -2 all but one, etc.)
-        grid: if not None will perform grid search for every label.
+        grid: if not None will perform grid search on the base model for every label.
             grid should be in same format as in scikit-learn's GridSearchCV.
         grid_n_jobs: number of jobs if using grid search. Will be forced to 1 if n_jobs=-1.
         cv (int): number of cross-validation folds of grid is not None.
-        params_list (list): optional list of dictionaries to set model parameters.
-            E.g. params_list = [{"reg_coef": 1}, {"reg_coef": 2}, {"reg_coef": 3}]
-            fits 3 models with model 1 having reg_coef=1, etc.
 
         Additional Fields:
         binarizer: Scikit-learn's LabelBinarizer for converting labels into -1/+1
 
     """
     def __init__(self, base_model=best.MyLinearSVM(), n_jobs=1, grid=None, grid_n_jobs=1, cv=3, params_list=[]):
-        """
-        grid is for base_model
-        params_list is for setting any parameters for the set of models.
-        """
         if grid is not None:
             if n_jobs == -1:
                 grid_n_jobs = 1
@@ -117,10 +112,14 @@ class MyOneVsRestClassifier(MyMultiClassifier):
                 binary label classification.')
 
         # Instanciate models
-        self.models_ = [copy.deepcopy(self.base_model) for _ in range(self.num_labels_)]
+        if hasattr(self.base_model, '__iter__'):
+            if len(self.base_model) < self.num_labels_:
+                raise ValueError('If base_model is a list it must be the same \
+                    size as the number of labels in the training set.')
+            self.models_ = self.base_model
+        else:
+            self.models_ = [copy.deepcopy(self.base_model) for _ in range(self.num_labels_)]
 
-        if self.params_list:
-            set_params(self.models_, self.params_list)
 
         # Create list of replicas (to pass into parallel function)
         xtrain_list = [X]*self.num_labels_
@@ -211,22 +210,3 @@ def fit_model_set(configs):
 
     mod = model.fit(X, y_train)
     return mod
-
-def set_params(list_of_models, list_of_params):
-    """ Modifies the original list of models.
-
-        Args:
-        list_of_models: list of model objects.
-        list_of_params: list of dictionaries holding attributes
-            contained in model objects.
-    """
-    if len(list_of_models) != len(list_of_params):
-        raise ValueError("params_list should be the same size as the \
-            number of models to fit.")
-    for i, model in enumerate(list_of_models):
-        params = list_of_params[i]
-        print(model)
-        print(params)
-        for key, value in params.items():
-            setattr(model, key, value)
-    return None

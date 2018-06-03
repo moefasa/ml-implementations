@@ -128,16 +128,16 @@ class LossFunction():
         gradient given a candidate point.
 
         Required fields for subclasses:
-        * The number of rows in X is self.n.
-        * The number of columns in X is self.d.
+        * self.n: The number of rows in X.
+        * self.d: The number of columns in X.
 
         Required methods for subclasses.
-        * set_space is used to pass in X and y, along with any additional
+        * set_space: is used to pass in X and y, along with any additional
           parameters that affect the space (regularization coeficient).
-          Constants should be cached and cache constants, used for queries of
-          gradient and objective at any point.
-        * obj returns the objective at some point (beta).
-        * computegrad returns the gradient at some point (beta).
+          Constants should be cached , used for queries of gradient and
+          objective at any point.
+        * obj: returns the objective at some point (beta).
+        * computegrad: returns the gradient at some point (beta).
 
         Example:
         loss = MyLossFunction()
@@ -153,6 +153,8 @@ class LossFunction():
 
 
     """
+    def __init__(self):
+        self.beta_ = None
 
     @abstractmethod
     def set_space(self, X, y, *args):
@@ -175,7 +177,6 @@ class LossFunction():
         """
         yield
 
-    @abstractmethod
     def update_pos(self, beta):
         """ Updates position of 'current' point.
             Note that in subclasses, any attribute with
@@ -205,7 +206,6 @@ class LossFunction():
     def get_current_point(self):
         return self.beta_
 
-    @abstractmethod
     def get_shape(self):
         """ Method returns tuple (n, d) where
             n is the number of rows in X
@@ -219,7 +219,7 @@ class SquaredHingeLoss(LossFunction):
         additional details.
     """
     def __init__(self):
-        self.beta_ = None
+        super().__init__()
 
     def set_space(self, X, y, reg_coef):
         self.reset(space=True)
