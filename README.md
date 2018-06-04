@@ -20,18 +20,19 @@ The examples folder contains 3 jupyter notebooks with demo's of the estimators i
 * **loss_functions**: Contains various loss functions that can be implemented by the gradient_utils library.
 * **multiclass_estimators**: Contains the MyOneVsRestClassifier and tools for distributed computing.
 
-## Contributing
 
-### gradient_utils
+## Using gradient_utils
 
-To use the **gradient_utils** library you just need to call the GradientOptimizer class. For example,
+To use the **gradient_utils** library you just need to use the GradientOptimizer class. For example,
 ```python
 optimizer = GradientOptimizer(loss_function='squared-hinge')
 optimizer.optimize(X, y, lambduh) # any additional argument to X, y is optional.
 ```
 The optimizer will then run fast gradient descent and return an a list of parameter values at each iteration of gradient descent.
 
- ### loss_functions
+## Contributing
+
+### loss_functions
 
 To add a loss function you'll need to inherit from the LossFunction class and implement 3 methods: set_space, obj, and computegrad,
 and be sure to save the dimensions of X (n, d) as self.n, self.d. For example,
@@ -42,7 +43,7 @@ class MyLossFunction(LossFunction):
         self.X = X
         self.y = y
         self.l = lambduh
-        self.n, self.d = n, d
+        self.n, self.d = X.shape
         return self
 
     def obj(self, beta):
