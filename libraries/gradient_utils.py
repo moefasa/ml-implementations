@@ -2,6 +2,13 @@
 This module contains tools for performing gradient descent optimization.
 Currently only supports the fast/accelerated gradient descent algorithm
 for convex optimization problems.
+
+To use the gradient_utils library simply instanciate the GradientOptimizer
+and pass it the appropriate loss function (must be in loss_functions library).
+
+Given a matrix X of size (n, d), the optimizer will return an array of
+parameters with dimension (d,).
+
 """
 import logging
 from abc import ABC, abstractmethod
@@ -36,7 +43,6 @@ class GradientOptimizer():
         self.eta_init = eta_init
         self.eps = eps
         self.betas_ = []
-        self.beta_ = []
 
         if loss_function in available_functions.keys():
             self.loss_function = available_functions[loss_function]()
