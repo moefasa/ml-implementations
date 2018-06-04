@@ -6,8 +6,8 @@ for convex optimization problems.
 To use the gradient_utils library simply instanciate the GradientOptimizer
 and pass it the appropriate loss function (must be in loss_functions library).
 
-Given a matrix X of size (n, d), the optimizer will return an array of
-parameters with dimension (d,).
+Given a matrix X of size (n, d), the optimizer will return a list of arrays (1 for each iteration),
+each with parameters with dimension (d,).
 
 """
 import logging
