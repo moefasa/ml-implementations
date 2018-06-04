@@ -27,13 +27,13 @@ The examples folder contains 3 jupyter notebooks with demo's of the estimators i
 To use the **gradient_utils** library you just need to call the GradientOptimizer class. For example,
 ```python
 optimizer = GradientOptimizer(loss_function='squared-hinge')
-optimizer.optimize(X, y, lambda) # lambda is an optiona argument.
+optimizer.optimize(X, y, lambduh) # any additional argument to X, y is optional.
 ```
 The optimizer will then run fast gradient descent and return an a list of parameter values at each iteration of gradient descent.
 
  ### loss_functions
 
-To add a loss function you'll need to inherit from the LossFunction class and implement 3 methods: set_space, obj, and compute_grad,
+To add a loss function you'll need to inherit from the LossFunction class and implement 3 methods: set_space, obj, and computegrad,
 and be sure to save the dimensions of X (n, d) as self.n, self.d. For example,
 
 ```python
@@ -56,6 +56,6 @@ class MyLossFunction(LossFunction):
         return (1.0/n)*term  + l*(norm(beta)**2)
      ...
 ```
-Note that the set_space section should be used to cache any constants used to compute objective or gradient. See an example of this in the SquaredHingeLoss loss function.
+Note that the set_space section should be used to cache any constants used to compute objective or gradient. See an example of this in the SquaredHingeLoss loss class.
 
 You'll also need to add a key to your loss function in the module-level get_available_functions dictionary. This will allow it to be come available from base estimators. For example, 'squared-hinge' calls the SquaredHingeLoss class.
